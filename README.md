@@ -17,7 +17,7 @@ reurn data:
 
 ### 2、Register the currently returned NAT ip:port and return a list of member ips identified by other uuids
 format
-//51pwn/P2P&E2E/[uuid]/your_publicIpPort_or_0/your_LanIps/self_mac_Addres
+//51pwn/P2P&E2E/[uuid]/your_publicIpPort_or_0/your_LanIps_or_0/self_mac_Addres
 eg:
 ```bash
 uuidgen
