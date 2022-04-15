@@ -2,9 +2,10 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"net"
+
+	ntp "github.com/hktalent/NatTrackerServer/lib"
 )
 
 // https://stackoverflow.com/questions/21968266/handling-read-write-udp-connection-in-go
@@ -36,24 +37,21 @@ func main() {
 	}
 	defer l.Close()
 
-	nC := make(chan *net.UDPAddr, 1000)
+	nC := make(chan *ntp.NatTrackerProtocol, 10000)
 	for {
 
 		select {
 		case cc := <-nC:
 			{
-				go func(cc1 *net.UDPAddr) {
-					s := fmt.Sprintf(cc1.String())
-					log.Println(s)
-					l.WriteToUDP([]byte(s), cc1)
-				}(cc)
+				go ntp.Dispacker(cc)
 			}
 		default:
 			{
-				message := make([]byte, 30)
+				message := make([]byte, 6666)
 				rlen, remote, err := l.ReadFromUDP(message[:])
-				if err == nil && 3 <= rlen {
-					nC <- remote
+				if err == nil && 5 <= rlen {
+
+					nC <- &ntp.NatTrackerProtocol{Msg: string(message[0:rlen]), Remote: remote, Conn: l}
 				}
 
 			}
