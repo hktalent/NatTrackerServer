@@ -4,6 +4,7 @@
 # NatTrackerServer
 - A fast, high performance Cross-platform lightweight Nat Tracker Server
 - suport IPv4 and IPv6
+<img width="786" alt="image" src="https://user-images.githubusercontent.com/18223385/163664762-b418b6da-735f-43e4-a948-f2034491628b.png">
 
 ## Tracker Server protocol
 ### 1、get NAT public ip and port
