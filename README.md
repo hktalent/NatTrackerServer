@@ -16,31 +16,9 @@ reurn data:
 122.44.78.33.223:998
 ```
 
-### 2、Register the currently returned NAT ip:port and return a list of member ips identified by other uuids
-format
+### 2、Register the (currently returned NAT ip:port) or (public ip:port) and return a list of member ips identified by other uuids
+format:
 //51pwn/P2P&E2E/[uuid]/your_publicIpPort_or_0/your_LanMac-Ips_or_0
-eg:
-```bash
-uuidgen
-```
-46D0F69E-E347-47A7-8E95-43E5BAA95348
-```bash
-ifconfig en0
-```
-```
-en0: flags=8863<UP,BROADCAST,SMART,RUNNING,SIMPLEX,MULTICAST> mtu 1500
-	options=6463<RXCSUM,TXCSUM,TSO4,TSO6,CHANNEL_IO,PARTIAL_CSUM,ZEROINVERT_CSUM>
-	ether 77:5b:67:a5:87:66 
-	media: autoselect
-```
-your_publicIpPort_or_0 and your_LanMac-Ips_or_0, allowed delimiters[,;]
-your_publicIpPort_or_0 like:
-33.231.55.111:883,133.23.155.121:1883;33.123.155.11:4883
-your_LanMac-Ips_or_0 format: 
-mac1-ipv61,ipv42;mac2-ip3,ip3
-like:
-b6:11:48:10:91:82-1e88::aede:48ff:fe00:1122;90:9c:4a:ce:39:72-fe80::894:75ca:61c3:fbec,192.168.10.17;ca:76:ae:e7:31:9c-fe99::6676:eeff:f117:009c;42:0c:aa:cc:ee:68-172.26.53.10
-or set: 0
 
 send data:
 ```
@@ -54,20 +32,16 @@ return data:
 ...
 ```
 - Why do you need Lan ip（s）?
-Because multiple nodes are in networks of different depths and levels, they cannot penetrate each other, but they can access the Internet of Things and have the same Internet IP. This design allows them to know the IP of their own intranet, so they can directly connect to each other. network communication without internet
+Because multiple nodes are in networks of different depths and levels, they cannot penetrate each other, 
+but they can access the Internet of Things and have the same Internet IP. 
+This design allows them to know the IP of their own intranet, 
+so they can directly connect to each other. network communication without internet
 
-### 3、Register your public ip:port and return a list of member ips identified by other uuids
-lan ips is 0，mean，Indicates that there is no need to communicate with other intranets, that is, you do not want to inform other intranet nodes under the same Internet IP address.
-send data:
-```
-//51pwn/P2P&E2E/46D0F69E-E347-47A7-8E95-43E5BAA95348/122.44.78.33.223:998/0/77:5b:67:a5:87:66
-```
-return data:
-```
-122.44.78.33.223:998 [your public ip and port for other member NAT]
-22.144.178.133.23:1998 [with you same uuid member]
-...
-```
+- why have reg sefl public ip and port?
+If you have already monitored the port and have a public Internet IP,
+maybe you need to directly expose the IP and port to the tracker,
+so that the first one returned by the tracker is no longer Nat's address, but the address given by yourself.
+
 ### 4、between tracker servers protocol
 register，format：
 //tcksvr/publicIpPort，eg:

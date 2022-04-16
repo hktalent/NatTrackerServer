@@ -2,6 +2,7 @@ module github.com/hktalent/NatTrackerServer
 
 go 1.18
 
+
 require (
 	github.com/dgraph-io/badger v1.6.2
 	github.com/google/uuid v1.3.0
@@ -23,3 +24,5 @@ require (
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
+
+replace github.com/hktalent/NatTrackerServer => ../

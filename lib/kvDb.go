@@ -10,6 +10,12 @@ type KvDbOp struct {
 	DbConn *badger.DB
 }
 
+func NewKvDbOp() *KvDbOp {
+	r := KvDbOp{}
+	r.Init(Key1)
+	return &r
+}
+
 func (r *KvDbOp) Init(szDb string) error {
 	opts := badger.DefaultOptions(szDb)
 	db, err := badger.Open(opts)
