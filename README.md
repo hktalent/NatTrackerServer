@@ -43,12 +43,13 @@ maybe you need to directly expose the IP and port to the tracker,
 so that the first one returned by the tracker is no longer Nat's address, but the address given by yourself.
 
 ### 4、between tracker servers protocol
+Prevent malicious registration, each IP can only register 10 times per minute
 register，format：
 //tcksvr/publicIpPort，eg:
 ```
-//tcksvr/223.16.111.99:9980
+//tcksvr/223.16.111.99:9980;123.116.111.99:980
 ```
-return all Nat tracker lists,like this:
+return all Nat tracker server lists,like this:
 ```
 223.16.111.99:9980
 22.116.11.199:99

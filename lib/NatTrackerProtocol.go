@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -17,7 +18,7 @@ var (
 	Key1        = "353170776e"
 	Nat  string = "//nat"
 	// P2P or E2E 前缀
-	NatPrefix     string = "//%/P2P&E2E/"
+	NatPrefix     string = "//%s/P2P&E2E/"
 	NatBodyFormat string = "%s/%s/%s"
 
 	// Nat tracker server之间通讯协议前缀
@@ -46,8 +47,8 @@ var (
 
 type NatTrackerProtocol struct {
 	Msg    string
-	Conn   *net.UDPConn
-	Remote *net.UDPAddr
+	Conn   net.PacketConn
+	Remote net.Addr
 	MsgLen int
 }
 
@@ -75,13 +76,23 @@ func NewNatTrackerProtocol() *NatTrackerProtocol {
 	x1 := &NatTrackerProtocol{}
 	doOnce.Do(func() {
 		Init()
-		NatPrefix = fmt.Sprintf(NatPrefix, x1.HexStr2Str(NatPrefix))
-		TrackerServerList = append(TrackerServerList, fmt.Sprintf("%s.com:%d", NatPrefix, ServerDefaultPort))
+		s11 := x1.HexStr2Str(Key1)
+		NatPrefix1 := fmt.Sprintf(NatPrefix, s11)
+		NatPrefix = NatPrefix1
+		TrackerServerList = append(TrackerServerList, fmt.Sprintf("%s.com:%d", s11, ServerDefaultPort))
+		// TrackerServerList = append(TrackerServerList, fmt.Sprintf("127.0.0.1:%d", ServerDefaultPort))
+		aS := x1.GetAllTrackerServer()
+		for _, j := range aS {
+			if "" != j && -1 == x1.ArrStrIndexOf(TrackerServerList, j) {
+				TrackerServerList = append(TrackerServerList, j)
+			}
+		}
 	})
 
 	return x1
 }
 
+// 私有ip检测
 func (r *NatTrackerProtocol) isPrivateIP(ip net.IP) bool {
 	if ip.IsLoopback() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() {
 		return true
@@ -185,7 +196,11 @@ func (r *NatTrackerProtocol) GetPublicIP() ([]string, error) {
 func (r *NatTrackerProtocol) GetMacIPAddrLists2Line4Client() string {
 	a, err := r.GetLocalMacIPAddrLists4Client()
 	if nil == err {
-		return strings.Join(a, SzPubSep)
+		s1 := strings.Join(a, SzPubSep)
+		// if 20 < len(s1) {
+		// 	return s1[0 : len(s1)-1]
+		// }
+		return s1
 	}
 	return SzDefault
 }
@@ -214,7 +229,7 @@ func (r *NatTrackerProtocol) GetLocalMacIPAddrLists4Client() ([]string, error) {
 				case *net.IPNet:
 					x1 = v.IP.String()
 					if r.isPrivateIP(v.IP) {
-						if strings.HasSuffix(x1, aFlt[0]) || strings.HasSuffix(x1, aFlt[1]) || strings.HasSuffix(x1, aFlt[2]) {
+						if strings.HasPrefix(x1, aFlt[0]) || strings.HasPrefix(x1, aFlt[1]) || strings.HasPrefix(x1, aFlt[2]) {
 							aR = append(aR, x1)
 						}
 					} else {
@@ -223,7 +238,7 @@ func (r *NatTrackerProtocol) GetLocalMacIPAddrLists4Client() ([]string, error) {
 				case *net.IPAddr:
 					x1 = v.IP.String()
 					if r.isPrivateIP(v.IP) {
-						if strings.HasSuffix(x1, aFlt[0]) || strings.HasSuffix(x1, aFlt[1]) || strings.HasSuffix(x1, aFlt[2]) {
+						if strings.HasPrefix(x1, aFlt[0]) || strings.HasPrefix(x1, aFlt[1]) || strings.HasPrefix(x1, aFlt[2]) {
 							aR = append(aR, x1)
 						}
 					} else {
@@ -248,18 +263,24 @@ func (r *NatTrackerProtocol) GetLocalMacIPAddrLists4Client() ([]string, error) {
 func (r *NatTrackerProtocol) SendUdp(szServerIp, msg string) (string, error) {
 
 	address := szServerIp
+	// log.Println("start net.Dial ", szServerIp, msg)
 	conn, err := net.Dial("udp", address)
 	if err != nil {
+		log.Println(err)
 		return "", err
 	}
 	defer conn.Close()
 
+	// log.Println("start Write ", msg)
 	_, err = conn.Write([]byte(msg))
 	if nil != err {
+		log.Println(err)
 		return "", err
 	} else {
 		p := make([]byte, 40940)
 
+		// log.Println("start Read ")
+		conn.SetReadDeadline(time.Now().Add(3 * time.Second))
 		n, err := conn.Read(p)
 		if err == nil {
 			return string(p[0:n]), nil
@@ -269,8 +290,21 @@ func (r *NatTrackerProtocol) SendUdp(szServerIp, msg string) (string, error) {
 	}
 }
 
+// 这了还需要优化为多线程
 func (r *NatTrackerProtocol) SendUdp4AllTracker(msg string) (string, error) {
-	return "", nil
+	var s string
+	var err error
+	// log.Println("TrackerServerList len:", len(TrackerServerList))
+	for _, v := range TrackerServerList {
+		s, err = r.SendUdp(v, msg)
+		if err != nil {
+			log.Println(err)
+		} else {
+			log.Println(s)
+		}
+
+	}
+	return s, err
 }
 
 // suport IPv4 and IPv6
@@ -281,6 +315,11 @@ func (r *NatTrackerProtocol) GetNatPublicIpAndPort4Client() string {
 
 func (r *NatTrackerProtocol) RegAndGetAllMemberLists4Client(msg string) []string {
 	s, _ := r.SendUdp4AllTracker(msg)
+	return strings.Split(s, "\n")
+}
+
+func (r *NatTrackerProtocol) GetAllTrackerServer() []string {
+	s, _ := r.SendUdp4AllTracker(SzTrackerS2SPrefix)
 	return strings.Split(s, "\n")
 }
 

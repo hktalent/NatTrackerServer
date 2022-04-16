@@ -6,19 +6,23 @@ import (
 	"github.com/hktalent/NatTrackerServer/lib"
 )
 
-var NatClient = lib.NewNatClient()
+var NatClient = lib.NewNatTrackerProtocol()
 
 // suport IPv4 and IPv6
 func Nat() string {
 	return NatClient.GetNatPublicIpAndPort4Client()
 }
 
-// Generate UUID
-func GenerateUUID() string {
-	s, _ := NatClient.GenerateUUID()
-	return s
+func GetAllTrackerServer() []string {
+	return NatClient.GetAllTrackerServer()
 }
 
+// Generate UUID
+func GenerateUUID() string {
+	return NatClient.GenerateUUID()
+}
+
+// auto get all tracker server, and pubsh memory
 // reg self
 // get all member lists
 // if uuid = "", auto generate uuid,and print send data
@@ -32,7 +36,7 @@ func AutoRegSelf(uuid, selfPubIpPort string) []string {
 		bPrt = true
 	}
 	if "" == selfPubIpPort {
-		selfPubIpPort = NatClient.GetPublicIP2Line()
+		selfPubIpPort = NatClient.GetPublicIP2Line("")
 	}
 	s := lib.NatPrefix + uuid + "/" + selfPubIpPort + "/" + NatClient.GetMacIPAddrLists2Line4Client()
 	if bPrt {
