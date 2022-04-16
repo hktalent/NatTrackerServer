@@ -68,21 +68,24 @@ return all Nat tracker lists,like this:
 
 # How build
 ```bash
-build main.go
-# run server
-./main
+# server
+go build NatTrackerServer.go
+
+# server
+go build example/client.go
+
+
 ```
 # How run
 ## server
-
-
-# How test
-
 ```bash
-build clientest.go
-# run test
-./clientest
+./NatTrackerServer
 ```
+## client
+```bash
+./client -uuid="15f76184-fa9d-47c4-806d-83041a097c3a"
+```
+
 
 # Donation
 | Wechat Pay | AliPay | Paypal | BTC Pay |BCH Pay |
