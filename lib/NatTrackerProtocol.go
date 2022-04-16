@@ -156,16 +156,35 @@ func (r *NatTrackerProtocol) GetPublicIP2Line(szPort string) string {
 	return strings.TrimSuffix(strings.Join(a, SzPortSep+szPort+SzPubSep), SzPubSep)
 }
 
+// tracker server to ip lists
+func (r *NatTrackerProtocol) TcsvLst2Ips() []string {
+	a := []string{}
+	for _, i := range TrackerServerList {
+		udpAddr, err := net.ResolveUDPAddr("udp", i)
+		if nil == err {
+			a = append(a, udpAddr.IP.String())
+		}
+	}
+	return a
+}
+
 // reg server public ip
 func (r *NatTrackerProtocol) RegPublicIP(port string) {
+	a1 := r.TcsvLst2Ips()
 	a, err := r.GetPublicIP()
+	aR := []string{}
 	if nil == err && 0 < len(a) {
 		for i, v := range a {
 			a[i] = v + ":" + port
+			if -1 == r.ArrStrIndexOf(a1, a[i]) {
+				aR = append(aR, a[i])
+			}
 		}
 	}
-	s := SzTrackerS2SPrefix + "/" + strings.Join(a, SzPubSep)
-	go r.SendUdp4AllTracker(s)
+	if 0 < len(aR) {
+		s := SzTrackerS2SPrefix + "/" + strings.Join(aR, SzPubSep)
+		go r.SendUdp4AllTracker(s)
+	}
 }
 
 // get all public IP lists
