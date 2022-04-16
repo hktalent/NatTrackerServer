@@ -71,6 +71,9 @@ build main.go
 # run server
 ./main
 ```
+# How run
+## server
+
 
 # How test
 
