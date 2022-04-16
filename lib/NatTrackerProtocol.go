@@ -156,6 +156,18 @@ func (r *NatTrackerProtocol) GetPublicIP2Line(szPort string) string {
 	return strings.TrimSuffix(strings.Join(a, SzPortSep+szPort+SzPubSep), SzPubSep)
 }
 
+// reg server public ip
+func (r *NatTrackerProtocol) RegPublicIP(port string) {
+	a, err := r.GetPublicIP()
+	if nil == err && 0 < len(a) {
+		for i, v := range a {
+			a[i] = v + ":" + port
+		}
+	}
+	s := SzTrackerS2SPrefix + "/" + strings.Join(a, SzPubSep)
+	go r.SendUdp4AllTracker(s)
+}
+
 // get all public IP lists
 func (r *NatTrackerProtocol) GetPublicIP() ([]string, error) {
 	ifas, err := net.Interfaces()

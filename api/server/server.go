@@ -4,6 +4,7 @@ import (
 	"log"
 	"net"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 
@@ -34,6 +35,11 @@ func (mq messageQueue) dequeue() {
 	}
 }
 
+func regServer(tt *ntp.NatTrackerProtocol) {
+	szPort := strings.Split(address, ":")[1]
+	tt.RegPublicIP(szPort)
+}
+
 // 监听
 func listenAndReceive(maxWorkers int) error {
 	c, err := net.ListenPacket("udp", address)
@@ -41,10 +47,16 @@ func listenAndReceive(maxWorkers int) error {
 		return err
 	}
 	tick1 := time.Tick(time.Duration(time.Second))
+	tick2 := time.Tick(time.Duration(time.Second * 10))
 	for {
 		select {
+		case <-tick2:
+			{
+				go regServer(ntp.NewNatTrackerProtocol())
+			}
 		case <-tick1:
 			{
+
 				if len(mq) < maxQueueSize {
 					for i := 0; i < maxWorkers; i++ {
 						go mq.dequeue()
